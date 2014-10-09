@@ -253,8 +253,8 @@ namespace pmi {
         vector<string> word_pos_list = vital::split(parsed_content, '\n');
         for (vector<string>::iterator it = word_pos_list.begin(); it != word_pos_list.end(); it++) {
             string line = (string)*it;
-            this->StoreEachNoun(&line);
-            // this->StoreEachWord(&line);
+            // this->StoreEachNoun(&line);
+            this->StoreEachWord(&line);
         }
     }
 
