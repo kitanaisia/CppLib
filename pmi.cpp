@@ -98,7 +98,7 @@ namespace pmi {
 //         }
 //     }
 
-    void SegmentedDocument::AddCount(map<string, int>* word_count, map<pair<string,string>, int>* conbination_count){
+    void SegmentedDocument::AddCount(map<string, int>* word_count, map<pair<string,string>, int>* conbination_count, vector<string>pos_arr){
 
         // 重複を取り除く
         vector<Word> unique_words = this->words;
@@ -110,7 +110,7 @@ namespace pmi {
         for(vector<Word>::iterator i = unique_words.begin(); i != unique_words.end(); i++){
             // 生起回数カウント
             Word word_interest = (Word)*i;
-            if (word_interest.PartOfSpeech() == "名詞") {
+            if ( IsContain( word_interest.PartOfSpeech(), pos_arr) ) {
                 (*word_count)[ word_interest.Surface() ] += 1;
             }
 
@@ -123,7 +123,7 @@ namespace pmi {
             for(vector<Word>::iterator j = i_next; j != unique_words.end(); j++){
                 Word word_pair = (Word)*j;
 
-                if (word_interest.PartOfSpeech() == "名詞" && word_pair.PartOfSpeech() == "名詞") {
+                if ( IsContain( word_interest.PartOfSpeech(), pos_arr) && IsContain( word_pair.PartOfSpeech(), pos_arr) ) {
                     // 共起回数カウント．pair[w1,w2] と pair[w2,w1] を考慮するための比較演算
                     if (word_interest.Surface() < word_pair.Surface()) {
                         (*conbination_count)[make_pair(word_interest.Surface(), word_pair.Surface() )] += 1;
@@ -184,7 +184,7 @@ namespace pmi {
     // ==================================================
     // フレーム化の実質的実装部分
     // ==================================================
-    vector<SegmentedDocument> Document::Segment(const int size, const int shift){
+    vector<SegmentedDocument> Document::Segment(const int size, const int shift, vector<string> content_poslist){
         vector<SegmentedDocument> seg_doc_arr;
         vector<Word> segment;
         int noun_count = 0;
@@ -197,17 +197,18 @@ namespace pmi {
             // 要素のプッシュ
             segment.push_back(word_interest);
 
-            // 名詞かどうか判定．名詞の場合，カウント++
-            if (word_interest.PartOfSpeech() == "名詞") {
+            // 内容語であると指定した品詞かどうか判定．指定した品詞の場合，カウント++
+            // if (word_interest.PartOfSpeech() == "名詞") {
+            if ( IsContain(word_interest.PartOfSpeech(), content_poslist) ) {
                 noun_count++;
             }
 
-            // フレームシフト分の名詞を見つけたら，次のフレーム開始場所を記憶
+            // フレームシフト分の内容語を見つけたら，次のフレーム開始場所を記憶
             if (noun_count == shift) {
                 next_begin = it;
             }
 
-            // 1フレーム分の名詞を見つけたら，フレームをプッシュして，また作りなおす．
+            // 1フレーム分の内容語を見つけたら，フレームをプッシュして，また作りなおす．
             else if (noun_count == size) {
                 // 
 //                 for(vector<Word>::iterator iit = segment.begin(); it != segment.end(); it++){
@@ -262,6 +263,17 @@ namespace pmi {
     // PMI method
     double CalcTValue(int freq_x, int freq_y, int freq_xy, int frame_count){
         return (abs(freq_xy - ((double)( freq_x * freq_y ) / (double)frame_count))) / (sqrt((double)freq_xy));
+    }
+
+    // 
+    bool IsContain(string pos, vector<string>pos_arr){
+        vector<string>::iterator findit = find(pos_arr.begin(), pos_arr.end(), pos);
+        if (findit != pos_arr.end()) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 

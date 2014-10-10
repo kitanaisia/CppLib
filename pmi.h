@@ -43,7 +43,7 @@ namespace pmi {
         void Print();
         void WordCount(map<string, int>* word_count);       
         void ConbinationCount(map<pair<string,string>, int>* conbination_count);
-        void AddCount(map<string, int>* word_count, map<pair<string,string>, int>* conbination_count);
+        void AddCount(map<string, int>* word_count, map<pair<string,string>, int>* conbination_count, vector<string> pos_arr);
 
 
         // setter
@@ -62,8 +62,9 @@ namespace pmi {
     public:
         // Constructor
         Document(const string* file_content);
-        vector<SegmentedDocument> Segment(int size, int shift);
+        vector<SegmentedDocument> Segment(int size, int shift, vector<string>);
     };
 
     double CalcTValue(int freq_x, int freq_y, int freq_xy, int frame_count);
+    bool IsContain(string pos, vector<string>pos_arr);
 } // namespace pmi
