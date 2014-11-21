@@ -11,9 +11,10 @@
 using namespace std;
 namespace pmi {
     // Constructor 
-    Word::Word(string surface, string part_of_speech){
+    Word::Word(string surface, string part_of_speech, string pos_detail){
         this->Surface(surface);
         this->PartOfSpeech(part_of_speech);
+        this->POSDetail(pos_detail);
     }
 
     // getter 
@@ -23,6 +24,9 @@ namespace pmi {
     string Word::PartOfSpeech() const{
         return this->part_of_speech;
     }
+    string Word::POSDetail() const{
+        return this->pos_detail;
+    }
 
     // setter
     void Word::Surface(string surface){
@@ -31,10 +35,13 @@ namespace pmi {
     void Word::PartOfSpeech(string part_of_speech){
         this->part_of_speech = part_of_speech;
     }
+    void Word::POSDetail(string pos_detail){
+        this->pos_detail = pos_detail;
+    }
 
     // Methods
     void Word::Print(){
-        cout << this->Surface() << "\t" << this->PartOfSpeech() << endl;
+        cout << this->Surface() << "\t" << this->PartOfSpeech() << "\t" << this->POSDetail() << endl;
     }
 
     // Operator
@@ -46,7 +53,9 @@ namespace pmi {
     }
 
     bool operator ==(const pmi::Word& word_x, const pmi::Word& word_y){
-        if (word_x.Surface() == word_y.Surface() && word_x.PartOfSpeech() == word_y.PartOfSpeech() ) {
+        if ( (word_x.Surface() == word_y.Surface() ) 
+                && ( word_x.PartOfSpeech() == word_y.PartOfSpeech() )
+                && ( word_x.POSDetail() == word_y.POSDetail() ) ) {
             return true;
         } else {
             return false;
@@ -149,37 +158,58 @@ namespace pmi {
 
     // Methods
     string Document::ParseContent(const string* file_content){
-        MeCab::Tagger* parser = MeCab::createTagger("--node-format=%m\\t%f[0]\\n --eos-format='' ");
+        MeCab::Tagger* parser = MeCab::createTagger("--node-format=%m\\t%f[0]\\t%f[1]\\n --eos-format='' ");
         string result = parser->parse(file_content->c_str() );        // docをchar*に変換して，パースする
 
         return result;
     }
 
     void Document::StoreEachWord(const string* word_pos){
-        string::size_type sep_index= word_pos->find('\t', 0);
+        vector<string> elements = vital::split(*word_pos, '\t');
 
-        if (sep_index != string::npos) {
-            string surface = word_pos->substr(0,sep_index);
-            string part_of_speech = word_pos->substr(sep_index+1);
+        // 意図しない文字列が来た場合に備え，表層，品詞，品詞詳細があるか確認
+        if (elements.size() == 3) {
+            // 表層単語の格納
+            vector<string>::iterator it = elements.begin();
+            string surface = (string)*it;
 
-            Word word(surface, part_of_speech);
+            // 品詞の格納
+            it++;
+            string part_of_speech = (string)*it;
+
+            // 品詞の詳細の格納
+            it++;
+            string pos_detail = (string)*it;
+
+            Word word(surface, part_of_speech, pos_detail);
+
             this->words.push_back(word);
         }
     }
 
     // 文書の順序的名詞リストを返す
     void Document::StoreEachNoun(const string* word_pos){
-        string::size_type sep_index= word_pos->find('\t', 0);
+        vector<string> elements = vital::split(*word_pos, '\t');
 
-        if (sep_index != string::npos) {
-            string surface = word_pos->substr(0,sep_index);
-            string part_of_speech = word_pos->substr(sep_index+1);
+        // 意図しない文字列が来た場合に備え，表層，品詞，品詞詳細があるか確認
+        if (elements.size() == 3) {
+            // 表層単語の格納
+            vector<string>::iterator it = elements.begin();
+            string surface = (string)*it;
+
+            // 品詞の格納
+            it++;
+            string part_of_speech = (string)*it;
+
+            // 品詞の詳細の格納
+            it++;
+            string pos_detail = (string)*it;
 
             if (part_of_speech == "名詞") {
-                Word word(surface, part_of_speech);
+                Word word(surface, part_of_speech, pos_detail);
                 this->words.push_back(word);
             }
-        }
+        }      
     }
     // ==================================================
     // フレーム化の実質的実装部分

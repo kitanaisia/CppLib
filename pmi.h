@@ -6,17 +6,20 @@ namespace pmi {
         // Field variables
         string surface;
         string part_of_speech;
+        string pos_detail;
     public:
         // Constructor 
-        Word(string surface, string part_of_speech);
+        Word(string surface, string part_of_speech, string pos_detail);
 
         // getter
         string Surface() const;
         string PartOfSpeech() const;
+        string POSDetail() const;
 
         // setter
         void Surface(string surface);
         void PartOfSpeech(string part_of_speech);
+        void POSDetail(string pos_detail);
 
         // Methods
         void Print();
